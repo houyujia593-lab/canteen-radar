@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>食堂雷达 · 校园食堂点评推荐</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📡</text></svg>">
+<style>
+:root{
+  --bg:#faf6f0; --card:#ffffff; --ink:#2b2318; --sub:#8a7f6f;
+  --brand:#ff6b35; --brand2:#ffb703; --good:#2a9d5c; --bad:#d64550;
+  --line:#efe6d8; --chip:#fff3e8; --radius:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink)}
+#app{max-width:480px;margin:0 auto;min-height:100vh;padding-bottom:76px;position:relative}
+.hidden{display:none!important}
+/* top */
+header.top{padding:16px 16px 10px;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;position:sticky;top:0;z-index:9}
+header.top h1{font-size:19px;display:flex;align-items:center;gap:8px}
+header.top p{font-size:12px;opacity:.9;margin-top:4px}
+.searchbar{margin-top:10px;background:rgba(255,255,255,.92);border-radius:999px;padding:8px 14px;display:flex;gap:8px;align-items:center}
+.searchbar input{border:0;outline:0;flex:1;font-size:14px;background:transparent;color:var(--ink)}
+/* sections */
+.section{padding:14px 16px 4px}
+.section h2{font-size:16px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.section h2 small{font-weight:400;color:var(--sub);font-size:12px}
+.card{background:var(--card);border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(120,90,40,.06)}
+/* chips */
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;padding:7px 14px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:13px;color:var(--sub);cursor:pointer}
+.chip.on{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
+/* dish random */
+.lucky{background:linear-gradient(135deg,#fff7ed,#ffedd5);border:1.5px dashed var(--brand)}
+.lucky .dish-name{font-size:20px;font-weight:800;margin:6px 0 2px}
+.lucky .meta{font-size:12px;color:var(--sub)}
+.btn{display:inline-block;background:var(--brand);color:#fff;border:0;border-radius:999px;padding:9px 18px;font-size:14px;font-weight:600;cursor:pointer}
+.btn.ghost{background:#fff;color:var(--brand);border:1.5px solid var(--brand)}
+.btn.sm{padding:6px 12px;font-size:12px}
+/* shop list */
+.shop{display:flex;gap:12px;cursor:pointer}
+.shop .logo{width:52px;height:52px;border-radius:14px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:26px;flex:0 0 auto}
+.shop .info{flex:1;min-width:0}
+.shop .name{font-size:15px;font-weight:700}
+.shop .loc{font-size:11px;color:var(--sub);margin-left:6px}
+.shop .desc{font-size:12px;color:var(--sub);margin:3px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stars{color:#f5a300;font-size:12px;letter-spacing:1px}
+.score{font-weight:800;color:#f5a300;font-size:14px;margin-right:4px}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:6px;background:var(--chip);color:var(--brand);margin:2px 4px 0 0}
+.tag.bad{background:#fceeee;color:var(--bad)}
+/* menu */
+.menu-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px dashed var(--line)}
+.menu-item:last-child{border-bottom:0}
+.menu-item .n{font-size:14px;font-weight:600}
+.menu-item .m{font-size:11px;color:var(--sub)}
+.price{color:var(--brand);font-weight:700;font-size:14px}
+/* review list */
+.rv{border-bottom:1px solid var(--line);padding:10px 0}
+.rv:last-child{border-bottom:0}
+.rv .who{font-size:12px;font-weight:700}
+.rv .time{font-size:11px;color:var(--sub);float:right}
+.rv .txt{font-size:13px;margin-top:4px;line-height:1.55}
+.rv .target{font-size:11px;color:var(--brand);background:var(--chip);border-radius:6px;padding:1px 6px;margin-left:6px}
+/* rank */
+.rank .row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);cursor:pointer}
+.rank .row:last-child{border-bottom:0}
+.rank .no{width:22px;height:22px;border-radius:8px;background:var(--chip);color:var(--brand);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.rank .no.top{background:var(--brand);color:#fff}
+.rank .nm{flex:1;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* form */
+.field{margin-bottom:14px}
+.field label{font-size:13px;font-weight:700;display:block;margin-bottom:6px}
+.field select,.field textarea,.field input{width:100%;padding:10px;border:1.5px solid var(--line);border-radius:12px;font-size:14px;background:#fff;color:var(--ink);outline:0}
+.field textarea{min-height:90px;resize:vertical}
+.star-pick{font-size:30px;letter-spacing:6px;cursor:pointer;color:#ddd;user-select:none}
+.star-pick b{color:#f5a300}
+.quick-tags span{display:inline-block;margin:4px 6px 0 0;padding:6px 12px;border-radius:999px;border:1.5px solid var(--line);font-size:12px;color:var(--sub);cursor:pointer}
+.quick-tags span.on{border-color:var(--brand);color:var(--brand);background:var(--chip);font-weight:600}
+.quick-tags span.bad.on{border-color:var(--bad);color:var(--bad);background:#fceeee}
+/* bottom nav */
+nav.bnm{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid var(--line);display:flex;z-index:20;padding-bottom:env(safe-area-inset-bottom)}
+nav.bnm a{flex:1;text-align:center;padding:8px 0 6px;font-size:11px;color:var(--sub);cursor:pointer}
+nav.bnm a .ic{font-size:20px;display:block}
+nav.bnm a.on{color:var(--brand);font-weight:700}
+/* detail back bar */
+.backbar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:#fff;position:sticky;top:0;z-index:8;border-bottom:1px solid var(--line);font-size:14px;cursor:pointer}
+/* toast */
+#toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#2b2318;color:#fff;padding:10px 20px;border-radius:999px;font-size:13px;opacity:0;transition:.3s;z-index:50;pointer-events:none;white-space:nowrap}
+#toast.show{opacity:1}
+.note{font-size:11px;color:var(--sub);text-align:center;padding:8px}
+.avatar{width:26px;height:26px;border-radius:50%;background:var(--chip);display:inline-flex;align-items:center;justify-content:center;font-size:14px;margin-right:6px;vertical-align:middle}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top" id="topbar">
+    <h1>📡 食堂雷达</h1>
+    <p>发现食堂新菜 · 避开踩雷窗口 · 让每一顿都不将就</p>
+    <div class="searchbar">🔍<input id="search" placeholder="搜店铺、菜品，如：猪脚饭" oninput="doSearch(this.value)"></div>
+  </header>
+
+  <main>
+    <!-- 首页 -->
+    <section id="tab-home" class="section">
+      <div class="card lucky">
+        <div style="font-size:12px;color:var(--brand);font-weight:700">🎲 选择困难终结器</div>
+        <div class="dish-name" id="luckyName">点下面按钮，今天这顿我说了算</div>
+        <div class="meta" id="luckyMeta">按「高分优先 + 随机轮换」推荐，不吃重复</div>
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <button class="btn" onclick="rollLucky()">帮我选！</button>
+          <button class="btn ghost" id="luckyGo" onclick="luckyGo()" style="display:none">去看看 👀</button>
+        </div>
+      </div>
+
+      <div class="card rank">
+        <h2>🔥 本周热门 TOP6</h2>
+        <div id="hotList"></div>
+      </div>
+
+      <div class="card rank">
+        <h2>💣 避雷预警 <small>近期差评集中，慎点</small></h2>
+        <div id="mineList"></div>
+      </div>
+    </section>
+
+    <!-- 店铺 -->
+    <section id="tab-shops" class="section hidden">
+      <div class="chips" id="canteenChips"></div>
+      <div id="shopList"></div>
+    </section>
+
+    <!-- 写点评 -->
+    <section id="tab-write" class="section hidden">
+      <div class="card">
+        <div class="field"><label>① 选择食堂</label>
+          <select id="wCanteen" onchange="fillShopsSel()"></select></div>
+        <div class="field"><label>② 选择店铺（窗口）</label>
+          <select id="wShop" onchange="fillDishesSel()"></select></div>
+        <div class="field"><label>③ 点评对象</label>
+          <select id="wDish"></select></div>
+        <div class="field"><label>④ 打分</label>
+          <div class="star-pick" id="starPick"></div></div>
+        <div class="field"><label>⑤ 快速标签（可多选）</label>
+          <div class="quick-tags" id="qTags"></div></div>
+        <div class="field"><label>⑥ 详细说说</label>
+          <textarea id="wText" placeholder="口味、分量、排队时长、性价比…真实就好"></textarea></div>
+        <div class="field"><label>你的昵称</label>
+          <input id="wName" placeholder="匿名也可以" maxlength="12"></div>
+        <button class="btn" style="width:100%" onclick="submitReview()">发布点评</button>
+      </div>
+      <div class="note">点评保存在你的浏览器本地（演示版），正式版将同步到服务端并参与榜单计算</div>
+    </section>
+
+    <!-- 我的 -->
+    <section id="tab-me" class="section hidden">
+      <div class="card">
+        <h2>👤 我的点评 <small id="myCount"></small></h2>
+        <div id="myReviews"><div class="note">还没有点评，去写第一条吧 →</div></div>
+        <button class="btn ghost sm" style="margin-top:8px" onclick="resetData()">重置本地演示数据</button>
+      </div>
+      <div class="card">
+        <h2>💡 产品设计说明</h2>
+        <div style="font-size:13px;line-height:1.8;color:#4a4234">
+          <b>痛点：</b>① 每天「吃什么」决策成本高；② 新店/新菜信息不对称，踩雷只能靠自己试错；③ 差评集中在「排队久/变咸了/涨价」，但没有结构化入口表达。<br>
+          <b>方案：</b>收录全部食堂店铺与菜单 → 学生按店铺/菜品打分 + 标签 → 生成热门推荐、避雷预警、随机「帮我选」三种决策入口。<br>
+          <b>迭代方向：</b>实时排队人数、菜品上新提醒、防刷分（校园卡实名+一菜一评）、失物/占座互助。
+        </div>
+      </div>
+    </section>
+
+    <!-- 店铺详情 -->
+    <section id="tab-detail" class="section hidden">
+      <div class="card" id="dHead"></div>
+      <div class="card">
+        <h2>🍽 菜单 <small>点击菜品直接点评</small></h2>
+        <div id="dMenu"></div>
+      </div>
+      <div class="card">
+        <h2>💬 学生点评 <small id="dRvCount"></small></h2>
+        <div id="dReviews"></div>
+        <button class="btn" style="width:100%;margin-top:10px" onclick="prefillFromDetail()">✍️ 点评这家店</button>
+      </div>
+    </section>
+
+    <!-- 搜索结果 -->
+    <section id="tab-search" class="section hidden">
+      <div class="card rank">
+        <h2>🔎 搜索结果</h2>
+        <div id="searchResult"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="backbar hidden" id="backbar" onclick="go(curTab||'home')">← 返回</div>
+  <nav class="bnm">
+    <a data-t="home" class="on" onclick="go('home')"><span class="ic">🏠</span>首页</a>
+    <a data-t="shops" onclick="go('shops')"><span class="ic">🏪</span>店铺</a>
+    <a data-t="write" onclick="go('write')"><span class="ic">✍️</span>写点评</a>
+    <a data-t="me" onclick="go('me')"><span class="ic">👤</span>我的</a>
+  </nav>
+</div>
+<div id="toast"></div>
+
+<script>
+/* ================= 数据（演示样例） ================= */
+const CANTEENS=["第一食堂(一区)","第二食堂(二区)","第三食堂(图书馆旁)","研究生食堂","夜宵街"];
+const SHOPS=[
+{id:1,c:0,e:"🍖",n:"自选快餐窗口",loc:"1F东",tags:["性价比","饭点排队"],desc:"12元两荤一素，量大学生党狂喜",menu:[{n:"糖醋里脊",p:6,r:4.6},{n:"土豆炖牛肉",p:8,r:4.4},{n:"番茄炒蛋",p:4,r:4.2},{n:"清炒时蔬",p:3,r:3.9}],rv:[{u:"23级小王",s:5,t:"牛肉给得实在，建议11:20前到，晚10分钟排20人",d:"土豆炖牛肉",day:2},{u:"夜猫子",s:4,t:"糖醋里脊稳，时蔬偏咸",d:"糖醋里脊",day:5}]},
+{id:2,c:0,e:"🍜",n:"兰州拉面",loc:"1F西",tags:["现拉","免费加面"],desc:"汤头在线，二细最好吃",menu:[{n:"牛肉拉面(大)",p:12,r:4.5},{n:"牛肉拉面(小)",p:10,r:4.3},{n:"凉拌黄瓜",p:5,r:4.0}],rv:[{u:"拉面星人",s:5,t:"免费加面这点永远的神",d:"牛肉拉面(大)",day:1}]},
+{id:3,c:0,e:"🌶",n:"麻辣香锅",loc:"2F",tags:["按两计价","重口"],desc:"自选称重，辣度可备注",menu:[{n:"香锅套餐(两人份)",p:38,r:4.1},{n:"小酥肉",p:12,r:4.4},{n:"宽粉",p:3,r:4.0}],rv:[{u:"干饭王",s:3,t:"好吃但随便夹夹就40+，人均预算党慎入",day:3},{u:"小李",s:2,t:"上周换师傅了，咸到不行，和三月不是一个味",day:1}]},
+{id:4,c:0,e:"🦆",n:"烧腊饭",loc:"1F中",tags:["广式","出餐快"],desc:"烧鸭皮脆，叉烧偏甜",menu:[{n:"烧鸭饭",p:15,r:4.5},{n:"叉烧饭",p:14,r:4.2},{n:"白切鸡饭",p:16,r:4.3}],rv:[{u:"深户靓仔",s:5,t:"烧鸭饭全校TOP3，11:30后鸭腿就没了",d:"烧鸭饭",day:2}]},
+{id:5,c:1,e:"🍛",n:"猪脚饭",loc:"2F东",tags:["顶饱","卤味"],desc:"卤得透，配酸菜解腻",menu:[{n:"隆江猪脚饭",p:16,r:4.7},{n:"卤蛋",p:2,r:4.1},{n:"例汤",p:0,r:3.8}],rv:[{u:"铁子",s:5,t:"猪脚软烂入味，16块能吃到撑，封神",d:"隆江猪脚饭",day:0},{u:"深夜emo",s:5,t:"加卤蛋是正确吃法",d:"卤蛋",day:4}]},
+{id:6,c:1,e:"🥘",n:"黄焖鸡米饭",loc:"2F西",tags:["砂锅","可加辣"],desc:"酱香浓，米饭免费加",menu:[{n:"黄焖鸡(小)",p:14,r:4.2},{n:"黄焖鸡(大)",p:18,r:4.3},{n:"油豆腐",p:3,r:4.0}],rv:[{u:"微辣选手",s:4,t:"酱汁拌饭一绝，油豆腐吸汁必加",d:"黄焖鸡(大)",day:6}]},
+{id:7,c:1,e:"🫓",n:"煎饼果子",loc:"1F门口",tags:["早餐","排队快"],desc:"薄脆现炸，甜面酱别多放",menu:[{n:"基础煎饼",p:7,r:4.4},{n:"加蛋加脆",p:10,r:4.6},{n:"豆浆",p:2,r:3.9}],rv:[{u:"早八人",s:5,t:"7:40前几乎不排队，赶课救星",d:"加蛋加脆",day:1}]},
+{id:8,c:1,e:"🍲",n:"瓦罐汤+盖码饭",loc:"1F南",tags:["煲汤","湖南口"],desc:"汤鲜，肉饼蛋是隐藏王者",menu:[{n:"玉米排骨瓦罐汤",p:8,r:4.5},{n:"肉饼蛋汤",p:7,r:4.7},{n:"辣椒炒肉盖码饭",p:13,r:4.4}],rv:[{u:"汤鬼",s:5,t:"每天一罐不重样，冬天本命",d:"肉饼蛋汤",day:3}]},
+{id:9,c:2,e:"🍕",n:"披萨焗饭站",loc:"3F",tags:["新窗口","拍照好看"],desc:"今夏新开，芝士给得猛",menu:[{n:"奥尔良鸡肉披萨(8寸)",p:25,r:4.0},{n:"番茄焗饭",p:18,r:3.8},{n:"柠檬气泡水",p:6,r:4.2}],rv:[{u:"美食博主(伪)",s:4,t:"披萨底偏厚，凉了会腻，趁热吃",d:"奥尔良鸡肉披萨(8寸)",day:2},{u:"AA的饭搭子",s:2,t:"焗饭夹生了一次，可能是个例，避雷提醒",d:"番茄焗饭",day:1}]},
+{id:10,c:2,e:"🥤",n:"茶饮糖水铺",loc:"3F东",tags:["下午茶","低卡可选"],desc:"杨枝甘露真芒果，双皮奶一般",menu:[{n:"杨枝甘露",p:10,r:4.6},{n:"双皮奶",p:8,r:3.6},{n:"手打柠檬茶",p:9,r:4.3}],rv:[{u:"奶茶续命",s:5,t:"10块钱的真芒果杨枝甘露，别家奶茶店哭晕",d:"杨枝甘露",day:4}]},
+{id:11,c:2,e:"🍚",n:"粤式蒸菜",loc:"2F",tags:["清淡","少油"],desc:"健身党据点，白灼系列稳",menu:[{n:"蒜蓉粉丝蒸虾",p:18,r:4.4},{n:"蒸水蛋",p:5,r:4.5},{n:"白灼菜心",p:6,r:4.2}],rv:[{u:"增肌中",s:5,t:"减脂期唯一食堂选择，干净",d:"白灼菜心",day:5}]},
+{id:12,c:2,e:"🥟",n:"东北饺子馆",loc:"2F西",tags:["现包","量大"],desc:"酸菜猪肉馅yyds，蘸蒜泥",menu:[{n:"酸菜猪肉饺(15只)",p:12,r:4.5},{n:"韭菜鸡蛋饺(15只)",p:10,r:4.1},{n:"饺子汤",p:0,r:4.0}],rv:[{u:"关东老铁",s:5,t:"原汤化原食，懂行",d:"酸菜猪肉饺(15只)",day:7}]},
+{id:13,c:3,e:"🍳",n:"教工/研究生自助",loc:"1F",tags:["自助","按磅"],desc:"22元随便吃，出品波动大",menu:[{n:"自助午餐",p:22,r:3.9},{n:"现煮档口(含)",p:0,r:4.2}],rv:[{u:"科研牛马",s:3,t:"周三周五出品好，其它日子随缘",day:6},{u:"新来的",s:2,t:"周一去的，菜盆见底没人补，体验差",day:2}]},
+{id:14,c:3,e:"🍗",n:"脆皮炸鸡",loc:"1F角",tags:["炸物","晚市打折"],desc:"19:00后半价，捡漏党最爱",menu:[{n:"全腿炸鸡",p:12,r:4.3},{n:"鸡块(6块)",p:8,r:4.0},{n:"薯条",p:6,r:3.7}],rv:[{u:"捡漏王",s:5,t:"晚上七点半去，12变6块，还要什么自行车",d:"全腿炸鸡",day:0}]},
+{id:15,c:3,e:"🌮",n:"塔可卷饼",loc:"2F",tags:["新窗口","异国风"],desc:"牛肉卷饼酱是灵魂",menu:[{n:"牛肉芝士卷饼",p:15,r:4.1},{n:"鸡肉塔可(2只)",p:12,r:3.8}],rv:[{u:"尝鲜党",s:4,t:"酱好吃，饼皮稍硬",d:"牛肉芝士卷饼",day:8}]},
+{id:16,c:4,e:"🍢",n:"深夜烧烤摊",loc:"广场北",tags:["夜宵","营业到1点"],desc:"羊肉串4元/串，配冰镇酸梅汤",menu:[{n:"羊肉串(3串)",p:12,r:4.4},{n:"烤茄子",p:10,r:4.2},{n:"酸梅汤",p:4,r:4.5}],rv:[{u:"夜游神",s:5,t:"期末周的深夜食堂，烟火气拉满",d:"羊肉串(3串)",day:1}]},
+{id:17,c:4,e:"🍜",n:"螺蛳粉",loc:"广场东",tags:["味大","管够"],desc:"臭香党据点，炸蛋必加",menu:[{n:"原味螺蛳粉",p:12,r:4.3},{n:"加炸蛋",p:15,r:4.6}],rv:[{u:"臭味相投",s:5,t:"汤底是真螺蛳熬的，加炸蛋吸汤封神",d:"加炸蛋",day:3},{u:"同桌",s:2,t:"座位隔三排都能闻到，社交性死亡风险自负",day:5}]}
+];
+const Q_TAGS=["好吃不贵","分量足","出餐快","新鲜","值得排队","环境干净","|","太咸","太油","排队久","涨价了","不新鲜","踩雷"];
+
+/* ================= 状态 ================= */
+let LS=JSON.parse(localStorage.getItem("canteenRadarV1")||"[]");
+let curTab="home",curShop=null,curCanteen=-1,wStar=0,wTags=[],luckyShop=null,lastRoll=-1;
+
+function save(){localStorage.setItem("canteenRadarV1",JSON.stringify(LS))}
+function resetData(){LS=[];save();renderAll();toast("已重置")}
+function shopById(id){return SHOPS.find(s=>s.id==id)}
+function score(s){const all=s.rv.concat(LS.filter(r=>r.shop==s.id));const n=all.length;return n?all.reduce((a,b)=>a+b.s,0)/n:4.0}
+function nrev(s){return s.rv.length+LS.filter(r=>r.shop==s.id).length}
+function dishList(s){const d=s.menu.map((m,i)=>({shop:s.id,di:i,name:m.n}));return d.concat([{shop:s.id,di:-1,name:"整体体验"}])}
+function fmtDay(d){return d<=0?"今天":d+"天前"}
+function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1800)}
+
+/* ================= 导航 ================= */
+function go(t){
+  curTab=t;
+  ["home","shops","write","me","detail","search"].forEach(x=>document.getElementById("tab-"+x).classList.add("hidden"));
+  document.getElementById("tab-"+t).classList.remove("hidden");
+  document.querySelectorAll("nav.bnm a").forEach(a=>a.classList.toggle("on",a.dataset.t==t));
+  document.getElementById("topbar").style.display=(t=="detail")?"none":"";
+  document.getElementById("backbar").classList.toggle("hidden",t!="detail");
+  if(t=="shops")renderShops();if(t=="write")initWrite();if(t=="me")renderMe();
+  window.scrollTo(0,0);
+}
+
+/* ================= 首页 ================= */
+function allDishes(){const out=[];SHOPS.forEach(s=>s.menu.forEach((m,i)=>{if(m.p>0)out.push({shop:s,di:i,d:m})}));return out}
+function rollLucky(){
+  const pool=allDishes().filter(x=>score(x.shop)>=3.8);
+  let pick,idx;let guard=0;
+  do{idx=Math.floor(Math.random()*pool.length);pick=pool[idx];guard++}while((idx==lastRoll||pick.shop.id==lastRoll)&&guard<10);
+  lastRoll=pick.shop.id;
+  const s=pick.shop,why=["高分口碑","热门窗口","附近差评少","老板手不抖"][Math.floor(Math.random()*4)];
+  document.getElementById("luckyName").textContent=s.e+" "+s.n+"「"+pick.d.n+"」";
+  document.getElementById("luckyMeta").textContent=s.canteenName+" · "+CANTEENS[s.c]+" "+s.loc+" · ¥"+pick.d.p+" · ★"+pick.d.r+"（"+why+"）";
+  luckyShop=s.id;document.getElementById("luckyGo").style.display="inline-block";
+}
+function luckyGo(){openShop(luckyShop)}
+function rankRow(i,html,onclick){return `<div class="row" onclick="${onclick}"><div class="no ${i<3?"top":""}">${i+1}</div>${html}</div>`}
+function renderHome(){
+  const hot=SHOPS.map(s=>({s,sc:score(s),n:nrev(s)})).sort((a,b)=>b.sc*b.n-a.sc*a.n).slice(0,6);
+  document.getElementById("hotList").innerHTML=hot.map((x,i)=>rankRow(i,
+    `<div style="flex:1"><span style="font-weight:600;font-size:14px">${x.s.e} ${x.s.n}</span><div style="font-size:11px;color:var(--sub)">${CANTEENS[x.s.c]} · 评分${x.sc.toFixed(1)} · ${x.n}条点评</div></div><span class="score">${x.sc.toFixed(1)}</span>`,`openShop(${x.s.id})`)).join("");
+  const bad=SHOPS.map(s=>({s,sc:score(s),last:s.rv.concat(LS.filter(r=>r.shop==s.id)).filter(r=>r.s<=2).length})).filter(x=>x.sc<4&&x.last>0).sort((a,b)=>a.sc-b.sc).slice(0,5);
+  document.getElementById("mineList").innerHTML=bad.length?bad.map(x=>`<div class="row" onclick="openShop(${x.s.id})"><div class="no" style="background:#fceeee;color:var(--bad)">💣</div><div style="flex:1"><span style="font-weight:600;font-size:14px">${x.s.n}</span><div style="font-size:11px;color:var(--bad)">近期${x.last}条差评 · 综合${x.sc.toFixed(1)}分，建议慎选</div></div></div>`).join(""):'<div class="note">暂无避雷预警，都是好店 🎉</div>';
+}
+
+/* ================= 店铺 ================= */
+function renderCanteenChips(){
+  const el=document.getElementById("canteenChips");
+  el.innerHTML=["全部",...CANTEENS].map((c,i)=>`<div class="chip ${curCanteen==i-1?"on":""}" onclick="filterCanteen(${i-1})">${c}</div>`).join("");
+}
+function filterCanteen(i){curCanteen=i;renderCanteenChips();renderShops()}
+function shopCard(s){
+  const sc=score(s);
+  return `<div class="card shop" onclick="openShop(${s.id})">
+    <div class="logo">${s.e}</div>
+    <div class="info"><div><span class="name">${s.n}</span><span class="loc">${CANTEENS[s.c]} · ${s.loc}</span></div>
+    <div class="desc">${s.desc}</div>
+    <div><span class="score">${sc.toFixed(1)}</span><span class="stars">${"★".repeat(Math.round(sc))}</span><span style="font-size:11px;color:var(--sub)">${nrev(s)}条</span></div>
+    <div>${s.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div></div></div>`;
+}
+function renderShops(){
+  const list=SHOPS.filter(s=>curCanteen<0||s.c==curCanteen);
+  document.getElementById("shopList").innerHTML=list.map(shopCard).join("")||'<div class="note">没有该食堂的店铺</div>';
+}
+
+/* ================= 详情 ================= */
+function openShop(id){
+  const s=shopById(id);if(!s)return;curShop=id;
+  const sc=score(s);const rvs=s.rv.concat(LS.filter(r=>r.shop==id)).sort((a,b)=>a.day-b.day);
+  document.getElementById("dHead").innerHTML=`
+    <div style="display:flex;gap:12px"><div class="logo" style="width:56px;height:56px;border-radius:16px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:30px">${s.e}</div>
+    <div><div style="font-size:18px;font-weight:800">${s.n}</div>
+    <div style="font-size:12px;color:var(--sub);margin:2px 0">${CANTEENS[s.c]} · ${s.loc} · ${s.desc}</div>
+    <div><span class="score">${sc.toFixed(1)}</span><span class="stars">${"★".repeat(Math.round(sc))}</span><span style="font-size:12px;color:var(--sub)">${nrev(s)}条学生点评</span></div>
+    <div>${s.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div></div></div>`;
+  document.getElementById("dMenu").innerHTML=s.menu.map((m,i)=>`
+    <div class="menu-item" onclick="writeFor(${s.id},${i})" style="cursor:pointer">
+      <div><div class="n">${m.n}</div><div class="m">菜品评分 ★${m.r} · 点击点评</div></div>
+      <div class="price">${m.p>0?("¥"+m.p):"免费/含"}</div></div>`).join("");
+  document.getElementById("dRvCount").textContent="共"+rvs.length+"条";
+  document.getElementById("dReviews").innerHTML=rvs.map(r=>`
+    <div class="rv"><div><span class="avatar">${r.u[0]}</span><span class="who">${r.u}</span>${r.d?`<span class="target">${r.d}</span>`:""}<span class="time">${fmtDay(r.day)}</span></div>
+    <div style="margin-top:3px"><span class="stars">${"★".repeat(r.s)}${"☆".repeat(5-r.s)}</span>${(r.tags||[]).map(t=>`<span class="tag ${Q_TAGS.slice(8).includes(t)?"bad":""}">${t}</span>`).join("")}</div>
+    <div class="txt">${r.t}</div></div>`).join("")||'<div class="note">暂无点评</div>';
+  go("detail");
+}
+function prefillFromDetail(){writeFor(curShop,-2)}
+
+/* ================= 写点评 ================= */
+function initWrite(prefill){
+  const cs=document.getElementById("wCanteen");
+  cs.innerHTML=CANTEENS.map((c,i)=>`<option value="${i}">${c}</option>`).join("");
+  renderStars();renderQTags();
+  if(prefill&&prefill.shop!=null){cs.value=prefill.c;fillShopsSel();document.getElementById("wShop").value=prefill.shop;fillDishesSel();if(prefill.di>=0)document.getElementById("wDish").value=prefill.di}
+  else if(!cs.value){fillShopsSel()}
+  else {fillShopsSel()}
+}
+function fillShopsSel(){
+  const c=+document.getElementById("wCanteen").value;
+  document.getElementById("wShop").innerHTML=SHOPS.filter(s=>s.c==c).map(s=>`<option value="${s.id}">${s.e} ${s.n}</option>`).join("");
+  fillDishesSel();
+}
+function fillDishesSel(){
+  const s=shopById(document.getElementById("wShop").value);if(!s)return;
+  document.getElementById("wDish").innerHTML=dishList(s).map((d,i)=>`<option value="${d.di}">${d.name}</option>`).join("");
+}
+function writeFor(shopId,di){
+  initWrite();
+  const s=shopById(shopId);
+  document.getElementById("wCanteen").value=s.c;fillShopsSel();
+  document.getElementById("wShop").value=shopId;fillDishesSel();
+  if(di>=0)document.getElementById("wDish").value=di;
+  go("write");
+}
+function renderStars(){
+  const el=document.getElementById("starPick");el.innerHTML="";
+  for(let i=1;i<=5;i++){const b=document.createElement("b");b.textContent="★";b.style.opacity=i<=wStar?1:.25;b.onclick=()=>{wStar=i;renderStars()};el.appendChild(b)}
+}
+function renderQTags(){
+  document.getElementById("qTags").innerHTML=Q_TAGS.map(t=>t=="|"?'<br>':`<span class="${t.length&&Q_TAGS.slice(8).includes(t)?"bad":""} ${wTags.includes(t)?"on":""}" onclick="togTag('${t}')">${t}</span>`).join("");
+}
+function togTag(t){const i=wTags.indexOf(t);i<0?wTags.push(t):wTags.splice(i,1);renderQTags()}
+function submitReview(){
+  const shop=+document.getElementById("wShop").value,di=+document.getElementById("wDish").value,s=wStar,txt=document.getElementById("wText").value.trim();
+  if(!s){toast("先打分哦");return}
+  if(!txt&&wTags.length==0){toast("标签或文字至少填一个");return}
+  const dish=di>=0?shopById(shop).menu[di].n:"整体体验";
+  LS.unshift({shop,dish,tags:wTags.slice(),s,t:txt||"（未写文字，打了分）",u:document.getElementById("wName").value.trim()||"匿名同学",day:0});
+  save();wStar=0;wTags=[];document.getElementById("wText").value="";renderStars();renderQTags();
+  toast("点评已发布，雷达已更新 📡");
+  setTimeout(()=>openShop(shop),600);
+}
+
+/* ================= 我的 ================= */
+function renderMe(){
+  document.getElementById("myCount").textContent="共"+LS.length+"条";
+  document.getElementById("myReviews").innerHTML=LS.map(r=>{const s=shopById(r.shop);return `<div class="rv"><span class="avatar">${s?s.e[0]:"🍽"}</span><b style="font-size:13px">${s?s.n:""}</b><span class="target">${r.dish}</span><span class="time">今天</span><div style="margin:3px 0"><span class="stars">${"★".repeat(r.s)}</span>${r.tags.map(t=>`<span class="tag ${Q_TAGS.slice(8).includes(t)?"bad":""}">${t}</span>`).join("")}</div><div class="txt">${r.t}</div></div>`}).join("")||'<div class="note">还没有点评，去写第一条吧 →</div>';
+}
+
+/* ================= 搜索 ================= */
+function doSearch(q){
+  q=q.trim();
+  if(!q){go(curTab=="search"?"home":curTab);return}
+  const hits=[];
+  SHOPS.forEach(s=>{
+    if(s.n.includes(q)||s.desc.includes(q)||s.tags.some(t=>t.includes(q)))hits.push({type:"shop",id:s.id,txt:`${s.e} ${s.n}`,sub:CANTEENS[s.c]+" · 店铺"});
+    s.menu.forEach(m=>{if(m.n.includes(q))hits.push({type:"dish",id:s.id,txt:`${m.n} ¥${m.p>0?m.p:"-"}`,sub:"在 "+s.n+"（"+CANTEENS[s.c]+"）"})});
+  });
+  document.getElementById("searchResult").innerHTML=hits.length?hits.map((h,i)=>rankRow(i,`<div class="nm">${h.txt}<div style="font-size:11px;color:var(--sub);font-weight:400">${h.sub}</div></div>`,`openShop(${h.id})`)).join(""):'<div class="note">没找到，换个词试试，或去「写点评」反馈新菜</div>';
+  go("search");
+}
+
+/* ================= 启动 ================= */
+SHOPS.forEach(s=>s.canteenName=CANTEENS[s.c]);
+renderCanteenChips();renderHome();
+</script>
+</body>
+</html>
